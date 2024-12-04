@@ -24,23 +24,25 @@ type Direction = Up | Down | Unknown
 type Accumulator = int option * Direction * int
 
 let checkReport report =
-  List.windowed 2 report
-  |> List.fold (fun (acc: Accumulator) windowPair -> 
-    let diff = windowPair[1] - windowPair[0]
-    
-    let direction = if diff > 0 then Up else Down
-    let previousFailure, currentDir, idx = acc
-    
-    let first = 
-      if currentDir <> Unknown && currentDir <> direction then 
-        previousFailure |> Option.orElse (Some idx)
-      elif Math.Abs diff > 0 && Math.Abs diff <= 3 then 
-        previousFailure |> Option.orElse None
-      else
-        previousFailure |> Option.orElse (Some idx)
+  match 
+    List.windowed 2 report
+    |> List.fold (fun (acc: Accumulator) windowPair -> 
+      let diff = windowPair[1] - windowPair[0]
+      
+      let direction = if diff > 0 then Up else Down
+      let previousFailure, currentDir, idx = acc
+      
+      let first = 
+        if currentDir <> Unknown && currentDir <> direction then 
+          previousFailure |> Option.orElse (Some idx)
+        elif Math.Abs diff > 0 && Math.Abs diff <= 3 then 
+          previousFailure |> Option.orElse None
+        else
+          previousFailure |> Option.orElse (Some idx)
 
-    first, direction, idx + 1
-  ) (None, Unknown, 0)
+      first, direction, idx + 1
+    ) (None, Unknown, 0) with
+  | failureIdx, _, _ -> failureIdx
 
 let checkReportWithRetry report =
   let rec removeAtIdx (maybeRemoveIdx: int option) = 
@@ -53,11 +55,11 @@ let checkReportWithRetry report =
       |> Option.map (fun i -> i + 1)
       |> Option.defaultValue 0
     match checkReport reportToProcess with
-    | Some failureIdx, _, _ -> 
+    | Some failureIdx -> 
       if (nextIdx < report.Length) then 
         removeAtIdx (Some nextIdx)
       else false
-    | _ -> true
+    | None -> true
   removeAtIdx None
   
 // part 1
@@ -65,7 +67,7 @@ reports
 |> List.ofSeq
 |> List.filter (fun report ->
   match checkReport report with
-  | Some _, _, _ -> false
+  | Some _ -> false
   | _ -> true)
 |> List.length
 
