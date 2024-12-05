@@ -35,7 +35,7 @@ let processStr (dos: MindYourDosAndDonts) (inputStr: string)  =
           | Ok (second, nextStr) -> 
             if nextStr[0] = ')' then 
               acc <- acc + first * second
-          | Error()-> ()
+          | Error() -> ()
       | Error() -> ()
       idx <- idx + 4
     else 
