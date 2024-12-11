@@ -24,22 +24,21 @@ let eval (inputFile: string) (ops: (int64 -> int64 -> int64) list)  =
   |> PSeq.filter (fun (result, numbers) ->
       cartesianProduct (numbers.Length - 1) ops
       |> PSeq.exists (fun operators -> 
-        numbers
-        |> List.fold (fun acc number -> 
-          let idx = fst acc
-          let acc = snd acc
-          if idx = 0 then (idx + 1, number)
-          else (idx + 1, operators[idx - 1] acc number)) (0, 0)
-        |> snd = result))
-  |> Array.ofSeq
-  |> Array.map fst
-  |> Array.sum
+        let result' = 
+          numbers
+          |> List.tail // Exclude the first number for pairing
+          |> List.zip operators // Pair each operator with the subsequent number
+          |> List.fold (fun acc (op, num) -> 
+            op acc num) (List.head numbers) // Fold starting with the first number
+        result' = result))
+  |> Seq.map fst
+  |> Seq.sum
 
 eval "example.txt" [ (*); (+) ] // 3749
 
 #time
 // part 1
-eval "input.txt" [ (*); (+) ] // 4998764814652
+eval "input.txt" [ (*); (+) ] // 932137732557
 #time
 
 let concat a b = int64 $"{a}{b}"
@@ -47,5 +46,5 @@ eval "example.txt" [ (*); (+); concat ] // 11387L
 
 #time
 // part 2
-eval "input.txt" [ (*); (+); concat ] // 37598910447546L
+eval "input.txt" [ (*); (+); concat ] // 661823605105500
 #time
