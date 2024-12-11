@@ -3,24 +3,28 @@
 open System.IO
 open FSharp.Collections.ParallelSeq
 
-let rec cartesianProduct size elements =
-  if size = 0 then [ [] ]
-  else
-    cartesianProduct (size - 1) elements
+let cartesianProduct size elements =
+  [ 1 .. size ]
+  |> List.fold (fun acc _ ->
+    acc 
     |> List.collect (fun seq -> 
       elements |> List.map (fun e -> seq @ [e]))
+     ) [[]]
 
 let eval (inputFile: string) (ops: (int64 -> int64 -> int64) list)  = 
+  // read input
   Path.Join(__SOURCE_DIRECTORY__, inputFile)
   |> File.ReadAllLines
-  |> Array.map (fun line -> 
-    line.Replace(":", "").Split(' ') 
-    |> List.ofArray
-    |> List.map int64)
-  |> Array.map (fun line -> 
-      match line with 
-      | result :: numbers -> result, numbers
-      | _ -> 0, [])
+  // parse input 
+  |> Array.map (fun strLine -> 
+    let line = 
+      strLine.Replace(":", "").Split(' ') 
+      |> List.ofArray
+      |> List.map int64
+    match line with 
+    | result :: numbers -> result, numbers
+    | _ -> 0, [])
+  // filter out the results that don't match the expected result
   |> PSeq.filter (fun (result, numbers) ->
       cartesianProduct (numbers.Length - 1) ops
       |> PSeq.exists (fun operators -> 
