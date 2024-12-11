@@ -1,4 +1,4 @@
-// deno run --allow-read script.ts
+// deno run --allow-read 7.ts
 import { join } from "@std/path"
 
 const cartesianProduct = <T>(size: number, elements: T[]): T[][] =>
@@ -16,10 +16,7 @@ const evaluateExpressions = (
     .map(line => line.trim())
     .filter(line => line.length > 0)
     .map(line => {
-      const parts = line
-        .replace(":", "")
-        .split(" ")
-        .map(x => parseInt(x, 10))
+      const parts = line.replace(":", "").split(" ").map(Number)
       const [result, ...numbers] = parts
       return { result, numbers }
     })
